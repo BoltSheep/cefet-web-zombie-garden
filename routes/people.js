@@ -26,11 +26,15 @@ router.get('/', async (req, res, next) => {
     //   - por exemplo, assim que uma pessoa é excluída, uma mensagem de
     //     sucesso pode ser mostrada
     // - error: idem para mensagem de erro
-    res.render('list-people', {
-      people,
-      success: req.flash('success'),
-      error: req.flash('error')
+    res.format({
+      html: () => res.render('list-people', {
+                  people,
+                  success: req.flash('success'),
+                  error: req.flash('error')
+                  }),
+      json: () => res.json({ people })
     })
+    
 
   } catch (error) {
     console.error(error)
@@ -88,7 +92,19 @@ router.get('/new/', (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
-
+router.post('/', (req,res) => {
+  console.log('miojo', req.body.name)
+  try{
+    db.execute(
+      {sql:`INSERT INTO person (name) VALUE ('${req.body.name}'); `}
+    ) 
+    req.flash('success', 'Nome Cadastrado')
+    res.redirect('/people/new')
+  } catch {
+    req.flash('error', 'Não foi possivel cadastrar esse nome')
+    res.redirect('/people/new')
+  }
+})
 
 /* DELETE uma pessoa */
 // Exercício 2: IMPLEMENTAR AQUI
@@ -97,6 +113,19 @@ router.get('/new/', (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
+
+router.delete('/:id', (req,res) => {
+  try{
+    db.execute(
+      {sql:`DELETE FROM person WHERE id = ${req.params.id};`}
+    )
+    req.flash('success', 'Pessoa Excluida')
+    res.redirect('/people')
+  } catch {
+    req.flash('error', 'Não foi possivel deletar esta pessoa')
+    res.redirect('/people')
+  }
+})
 
 
 export default router
